@@ -2,7 +2,7 @@
 
 A Chrome extension that analyzes product quality on Myntra and Amazon India using Google Gemini AI. Get instant material analysis, price-value assessment, brand reputation, and a buy/skip recommendation — all without leaving the product page.
 
-##Demo - https://www.youtube.com/watch?v=neG48zj1WUI
+## Demo - https://www.youtube.com/watch?v=neG48zj1WUI
 
 ## Features
 
