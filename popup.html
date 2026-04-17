@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shopping Quality Analyzer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-brand">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="white"/>
+      </svg>
+      <span>Quality Analyzer</span>
+    </div>
+    <button class="icon-btn" id="settingsBtn" title="Preferences">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 0-14.14 0M4.93 19.07a10 10 0 0 0 14.14 0M12 2v2M12 20v2M2 12h2M20 12h2"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- API Key Setup View -->
+  <div class="view" id="apiKeyView">
+    <div class="setup-container">
+      <div class="setup-icon">🔑</div>
+      <h2>Setup Required</h2>
+      <p class="setup-desc">Enter your Google Gemini API key (free tier supported)</p>
+      <input
+        type="password"
+        id="apiKeyInput"
+        class="text-input"
+        placeholder="AIzaSy..."
+        autocomplete="off"
+      />
+      <button class="btn btn-primary" id="saveApiKeyBtn">Save &amp; Continue</button>
+      <p class="hint-text">
+        Get your free key at
+        <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Settings / Preferences View -->
+  <div class="view hidden" id="settingsView">
+    <div class="settings-container">
+      <h2 class="settings-title">Your Preferences</h2>
+      <p class="settings-desc">Personalize analysis to match your shopping style</p>
+
+      <div class="settings-group">
+        <label class="settings-label" for="prefMaterial">Material preference</label>
+        <select id="prefMaterial" class="select-input">
+          <option value="no-preference">No preference</option>
+          <option value="natural">Natural fibers (cotton, wool, linen)</option>
+          <option value="synthetic-ok">Synthetics are fine</option>
+        </select>
+      </div>
+
+      <div class="settings-group">
+        <label class="settings-label" for="prefSkin">Skin type</label>
+        <select id="prefSkin" class="select-input">
+          <option value="normal">Normal</option>
+          <option value="sensitive">Sensitive — flag irritants</option>
+        </select>
+      </div>
+
+      <div class="settings-group">
+        <label class="settings-label" for="prefBudget">Budget focus</label>
+        <select id="prefBudget" class="select-input">
+          <option value="budget">Budget-conscious</option>
+          <option value="value">Value for money</option>
+          <option value="premium">Premium quality first</option>
+        </select>
+      </div>
+
+      <div class="settings-group settings-toggle-row">
+        <label class="settings-label" for="prefSustainability">Prioritize sustainability</label>
+        <label class="switch">
+          <input type="checkbox" id="prefSustainability">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="settings-actions">
+        <button class="btn btn-primary" id="savePrefsBtn">Save Preferences</button>
+        <button class="btn btn-outline" id="settingsApiKeyBtn">Change API Key</button>
+        <button class="btn btn-outline" id="settingsBackBtn">↩ Back</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Not on Product Page View -->
+  <div class="view hidden" id="notProductView">
+    <div class="empty-state">
+      <div class="empty-icon">🛍️</div>
+      <h2>No Product Detected</h2>
+      <p>Navigate to a Myntra or Amazon India product page to analyze its quality.</p>
+    </div>
+  </div>
+
+  <!-- Loading View -->
+  <div class="view hidden" id="loadingView">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p id="loadingText">Detecting product...</p>
+    </div>
+  </div>
+
+  <!-- Product Info View -->
+  <div class="view hidden" id="productView">
+    <div class="product-card">
+      <div class="product-card-header">
+        <span class="site-badge" id="siteBadge"></span>
+      </div>
+      <div class="product-brand" id="productBrand">Brand</div>
+      <div class="product-name" id="productName">Product Name</div>
+      <div class="product-meta-row">
+        <span class="product-price" id="productPrice">₹0</span>
+        <span class="product-discount hidden" id="productDiscount">0% off</span>
+      </div>
+      <div class="product-material" id="productMaterial"></div>
+      <div class="product-rating" id="productRating"></div>
+    </div>
+    <button class="btn btn-analyze" id="analyzeBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      Analyze Quality
+    </button>
+  </div>
+
+  <!-- Results View -->
+  <div class="view hidden" id="resultsView">
+
+    <!-- Results Header: cache indicator + refresh -->
+    <div class="results-header">
+      <span class="cache-indicator hidden" id="cacheIndicator">Cached just now</span>
+      <button class="refresh-btn hidden" id="refreshBtn" title="Force fresh analysis">🔄 Refresh</button>
+    </div>
+
+    <!-- MRP Inflation Warning (conditional) -->
+    <div class="mrp-warning hidden" id="mrpWarning">
+      <span class="mrp-warning-icon">⚠️</span>
+      <span class="mrp-warning-text" id="mrpWarningText"></span>
+    </div>
+
+    <!-- Recommendation Banner -->
+    <div class="rec-banner" id="recBanner">
+      <div class="rec-badge" id="recBadge">BUY NOW</div>
+      <div class="brand-tier-row hidden" id="brandTierRow">
+        <span class="brand-tier-badge" id="brandTierBadge"></span>
+        <span class="brand-tier-note" id="brandTierNote"></span>
+      </div>
+      <div class="rec-best-for" id="recBestFor"></div>
+      <div class="rec-reasoning" id="recReasoning"></div>
+    </div>
+
+    <!-- Material Quality Card -->
+    <div class="card">
+      <div class="card-title">Material Quality</div>
+      <div class="material-header">
+        <div class="score-ring" id="scoreRing">
+          <span class="score-num" id="materialScore">7</span>
+          <span class="score-denom">/10</span>
+        </div>
+        <div class="material-summary">
+          <div class="material-grade" id="materialGrade">B+</div>
+          <div class="material-name" id="materialName">Cotton</div>
+          <div class="material-attrs" id="materialAttrs"></div>
+        </div>
+      </div>
+      <div class="pros-cons-grid">
+        <div class="pros-col">
+          <div class="col-label pros-label">✅ Pros</div>
+          <ul class="trait-list" id="materialPros"></ul>
+        </div>
+        <div class="cons-col">
+          <div class="col-label cons-label">⚠️ Cons</div>
+          <ul class="trait-list" id="materialCons"></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fit & Sizing Card (conditional) -->
+    <div class="card hidden" id="fitCard">
+      <div class="card-title">Fit &amp; Sizing</div>
+      <div class="fit-text" id="fitText"></div>
+    </div>
+
+    <!-- Care Instructions Card (conditional) -->
+    <div class="card hidden" id="careCard">
+      <div class="card-title">Care Instructions</div>
+      <ul class="trait-list care-list" id="careList"></ul>
+    </div>
+
+    <!-- Price Analysis Card -->
+    <div class="card">
+      <div class="card-title">Price &amp; Value</div>
+      <div class="price-row">
+        <div class="price-verdict-badge" id="priceVerdictBadge">Good Value</div>
+        <div class="price-category" id="priceCategory">Mid-range</div>
+      </div>
+      <div class="price-reasoning" id="priceReasoning"></div>
+    </div>
+
+    <!-- Buy Timing Card (conditional) -->
+    <div class="card hidden" id="buyTimingCard">
+      <div class="card-title">When to Buy</div>
+      <div class="buy-timing-when" id="buyTimingWhen"></div>
+      <div class="buy-timing-reason" id="buyTimingReason"></div>
+    </div>
+
+    <!-- Quality vs Standards Card -->
+    <div class="card">
+      <div class="card-title">vs Industry Standards</div>
+      <div class="standards-rating" id="standardsRating"></div>
+      <div class="standards-comparison" id="standardsComparison"></div>
+    </div>
+
+    <!-- Better Alternatives Card -->
+    <div class="card">
+      <div class="card-title">Better Alternatives</div>
+      <div class="alternatives-list" id="alternativesList"></div>
+    </div>
+
+    <!-- Key Insight -->
+    <div class="insight-card">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="#F39C12" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7zM9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1z"/>
+      </svg>
+      <div class="insight-text" id="keyInsight">Loading insight...</div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-row">
+      <button class="btn btn-outline btn-action" id="findSimilarBtn">🔍 Find Similar</button>
+      <button class="btn btn-outline btn-action" id="shareBtn">📋 Share</button>
+    </div>
+
+    <button class="btn btn-outline" id="reanalyzeBtn">↩ Back to Product</button>
+  </div>
+
+  <!-- Error View -->
+  <div class="view hidden" id="errorView">
+    <div class="error-state">
+      <div class="error-icon">⚠️</div>
+      <p class="error-message" id="errorMessage">Something went wrong.</p>
+      <button class="btn btn-outline" id="retryBtn">Try Again</button>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

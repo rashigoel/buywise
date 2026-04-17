@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Shopping Quality Analyzer",
+  "version": "1.1.0",
+  "description": "AI-powered product quality analysis for online shopping — Myntra, Amazon, and more",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://www.myntra.com/*",
+    "https://www.amazon.in/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Shopping Quality Analyzer",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
